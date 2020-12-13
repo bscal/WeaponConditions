@@ -1,6 +1,8 @@
-package conditions;
+package me.bscal.conditions;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class Condition
@@ -25,5 +27,15 @@ public abstract class Condition
 	{
 		return color + name;
 	}
+
+	public abstract void Apply(ItemStack item);
+
+	public abstract void Remove(ItemStack item);
+
+	public abstract void ApplyPersistentData(ItemStack item);
+
+	public abstract void RemovePersistenData(ItemStack item);
+
+	public abstract void Update(ItemStack item);
 
 }

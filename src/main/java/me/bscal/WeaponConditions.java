@@ -1,32 +1,51 @@
+package me.bscal;
+
 import com.bergerkiller.bukkit.common.math.Vector4;
+import dev.jorel.commandapi.CommandAPI;
+import me.bscal.conditions.OiledCondition;
+import me.bscal.items.ItemManager;
+import me.bscal.logcraft.LogCraft;
+import me.bscal.logcraft.LogLevel;
 import net.byteflux.libby.BukkitLibraryManager;
 import net.byteflux.libby.Library;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class WeaponConditions extends JavaPlugin {
+public class WeaponConditions extends JavaPlugin
+{
 
-    private static WeaponConditions m_singleton;
+	public static LogCraft Logger;
 
-    @Override
-    public void onEnable() {
-        m_singleton = this;
+	private static WeaponConditions m_singleton;
 
-        BukkitLibraryManager libs = new BukkitLibraryManager(this);
-        libs.addMavenLocal();
-        libs.addRepository("https://ci.mg-dev.eu/plugin/repository/everything/");
+	private ItemManager m_itemManager;
 
-        Library BKCommonLib = Library.builder().groupId("com.bergerkiller.bukkit").artifactId("BKCommonLib")
-                .version("1.16.4-v2").classifier("shaded").build();
-        libs.loadLibrary(BKCommonLib);
+	@Override
+	public void onLoad()
+	{
+		CommandAPI.onLoad(true);
+	}
 
+	@Override
+	public void onEnable()
+	{
+		m_singleton = this;
+		Logger = new LogCraft(this, LogLevel.DEVELOPER);
+		CommandAPI.onEnable(this);
 
+		m_itemManager = new ItemManager();
+		getServer().getPluginManager().registerEvents(m_itemManager, this);
 
-        Vector4 vec4 = new Vector4(1, 2, 3, 4);
-        getLogger().info(vec4.toString());
+		m_itemManager.RegisterCondition(new OiledCondition());
 
-    }
+	}
 
-    public static WeaponConditions Get() {
-        return m_singleton;
-    }
+	public static WeaponConditions Get()
+	{
+		return m_singleton;
+	}
+
+	public ItemManager GetItemManager()
+	{
+		return m_itemManager;
+	}
 }
