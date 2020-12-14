@@ -2,6 +2,7 @@ package me.bscal.items;
 
 import me.bscal.WeaponConditions;
 import me.bscal.conditions.Condition;
+import me.bscal.logcraft.LogLevel;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -24,20 +25,17 @@ import java.util.Map;
 public class ItemManager implements Listener
 {
 
-	private static final long UPDATE_PERIOD = 20 * 60;
-	private static final String LORE_HEADER = ChatColor.GRAY + "+---- Conditions ----+";
-	private static final String LORE_FOOTER = ChatColor.GRAY + "+--------------------+";
+	public static final String LORE_PREFIX = ChatColor.GRAY + "-";
+	public static final int SPLIT_OFFSET = 1;
+	public static final String SPLIT_CHAR = " ";
+	private static final String LORE_HEADER = ChatColor.GRAY + ">> Conditions <<";
+	private static final String LORE_FOOTER = " ";
 
 	private Map<String, Condition> m_conditions = new HashMap<>();
 
-	public static final NamespacedKey OILED_KEY = new NamespacedKey(WeaponConditions.Get(),
-			"Oiled");
-	public static final NamespacedKey SHARPENED_KEY = new NamespacedKey(WeaponConditions.Get(),
-			"Sharpened");
-
 	public void RegisterCondition(Condition cond)
 	{
-		m_conditions.put(cond.GetLocalizedName(), cond);
+		m_conditions.put(cond.name, cond);
 	}
 
 	public Condition GetCondition(String name)
@@ -49,20 +47,25 @@ public class ItemManager implements Listener
 	{
 		ItemMeta im = item.getItemMeta();
 
+		List<String> lore;
 		if (im.hasLore())
 		{
-			LoreLookupData data = FindNextConditionLine(im.getLore());
-			PushLineToLore(im.getLore(), cond.GetLocalizedName(), data.index, data.contains);
+			lore = im.getLore();
+			LoreLookupData data = FindNextConditionLine(lore);
+			PushLineToLore(lore, cond.GetLocalizedName(), data.index, data.contains);
 		}
 		else
 		{
-			List<String> lore = new ArrayList<>(3);
-			PushLineToLore(lore, cond.GetLocalizedName(), 0, true);
-			im.setLore(lore);
-		}
-		item.setItemMeta(im);
+			lore = new ArrayList<>(3);
+			PushLineToLore(lore, cond.GetLocalizedName(), 0, false);
 
+		}
+		im.setLore(lore);
+		item.setItemMeta(im);
 		UpdateItem(item);
+
+		if (WeaponConditions.Logger.IsLevel(LogLevel.DEVELOPER))
+			WeaponConditions.Logger.Log("Adding Condition to item!");
 	}
 
 	public void RemoveCondition(ItemStack item, Condition cond)
@@ -71,10 +74,18 @@ public class ItemManager implements Listener
 
 		if (im.hasLore())
 		{
-			LoreLookupData data = FindCondition(im.getLore(), cond);
+			List<String> lore = im.getLore();
+			LoreLookupData data = FindCondition(lore, cond);
 			if (data.contains)
-				im.getLore().remove(data.index);
+				lore.remove(data.index);
+			im.setLore(lore);
+			item.setItemMeta(im);
+			UpdateItem(item);
 		}
+
+
+		if (WeaponConditions.Logger.IsLevel(LogLevel.DEVELOPER))
+			WeaponConditions.Logger.Log("Removing Condition to item!");
 	}
 
 	public void RemoveAllConditions(ItemStack item)
@@ -92,7 +103,7 @@ public class ItemManager implements Listener
 		if (im.hasLore())
 		{
 			LoreLookupData data = FindNextConditionLine(im.getLore());
-			return (data.contains && !im.getLore().get(data.index).equals(LORE_FOOTER));
+			return data.contains && m_conditions.containsKey(ExtractCondition(im.getLore().get(data.index)));
 		}
 		return false;
 	}
@@ -153,8 +164,7 @@ public class ItemManager implements Listener
 			if (line.equals(LORE_FOOTER))
 				break;
 
-			String[] split = line.split(" ");
-			Condition cond = m_conditions.get(split[0]);
+			Condition cond = m_conditions.get(ExtractCondition(line));
 
 			if (cond == null)
 				continue;
@@ -200,14 +210,18 @@ public class ItemManager implements Listener
 
 	private List<Condition> GetConditions(List<String> lore)
 	{
+		boolean has = false;
 		List<Condition> results = new ArrayList<>();
 		for (String line : lore)
 		{
+			if (line.equals(LORE_HEADER))
+				has = true;
+			if (!has)
+				continue;
 			if (line.equals(LORE_FOOTER))
 				break;
 
-			String[] split = line.split(" ");
-			Condition cond = m_conditions.get(split[0]);
+			Condition cond = m_conditions.get(ExtractCondition(line));
 
 			if (cond == null)
 				continue;
@@ -219,15 +233,25 @@ public class ItemManager implements Listener
 
 	private LoreLookupData FindCondition(List<String> lore, Condition condToFind)
 	{
+		boolean has = false;
 		for (int i = 0; i < lore.size(); i++)
 		{
 			String line = lore.get(i);
 
-			if (line.equals(LORE_FOOTER))
+			WeaponConditions.Logger.Log("WORKING???");
+
+			if (line.equals(LORE_HEADER))
+				has = true;
+			if (!has)
+				continue;
+			else if (line.equals(LORE_FOOTER))
 				break;
 
-			String[] split = line.split(" ");
-			Condition cond = m_conditions.get(split[0]);
+			line = ChatColor.stripColor(lore.get(i));
+
+			Condition cond = m_conditions.get(ExtractCondition(line));
+
+			WeaponConditions.Logger.Log(ExtractCondition(line));
 
 			if (cond == null || !cond.equals(condToFind))
 				continue;
@@ -237,17 +261,22 @@ public class ItemManager implements Listener
 		return new LoreLookupData(-1, false);
 	}
 
-	private void PushLineToLore(List<String> lore, String line, int index, boolean createHeaders)
+	private void PushLineToLore(List<String> lore, String line, int index, boolean hasHeaders)
 	{
-		if (createHeaders)
+		if (!hasHeaders)
 		{
 			lore.add(index, LORE_FOOTER);
-			lore.add(index, line);
+			lore.add(index, LORE_PREFIX + SPLIT_CHAR + line);
 			lore.add(index, LORE_HEADER);
 			return;
 		}
 
-		lore.add(index, line);
+		lore.add(index, LORE_PREFIX + SPLIT_CHAR + line);
+	}
+
+	public static String ExtractCondition(String line) {
+		String[] split = line.split(SPLIT_CHAR);
+		return (split.length > SPLIT_OFFSET) ? split[SPLIT_OFFSET] : "";
 	}
 
 	private static class LoreLookupData

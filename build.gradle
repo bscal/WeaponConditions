@@ -28,7 +28,7 @@ dependencies {
 
     compile "dev.jorel:commandapi-shade:5.3"
     compile 'net.byteflux:libby-bukkit:0.0.2-SNAPSHOT'
-    compile 'com.github.bscal:LogCraft:1.2.0'
+    compile 'me.bscal:ScalLib:1.0-SNAPSHOT'
 
     //implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
@@ -38,8 +38,8 @@ dependencies {
 shadowJar {
     dependencies {
         include dependency("dev.jorel:commandapi-shade:5.3")
-        include dependency("com.github.bscal:LogCraft:1.2.0")
-        include dependency("net.byteflux:libby-bukkit:0.0.2-SNAPSHOT")
+        include dependency("me.bscal:ScalLib:0.0.1-SNAPSHOT")
+        //include dependency("net.byteflux:libby-bukkit:0.0.2-SNAPSHOT")
     }
 }
 

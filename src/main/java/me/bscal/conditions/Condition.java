@@ -5,6 +5,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Objects;
+
 public abstract class Condition
 {
 
@@ -38,4 +40,20 @@ public abstract class Condition
 
 	public abstract void Update(ItemStack item);
 
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Condition condition = (Condition) o;
+		return Objects.equals(name, condition.name);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(name);
+	}
 }

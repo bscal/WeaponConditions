@@ -1,13 +1,11 @@
 package me.bscal;
 
-import com.bergerkiller.bukkit.common.math.Vector4;
 import dev.jorel.commandapi.CommandAPI;
+import me.bscal.cmd.Commands;
 import me.bscal.conditions.OiledCondition;
 import me.bscal.items.ItemManager;
 import me.bscal.logcraft.LogCraft;
 import me.bscal.logcraft.LogLevel;
-import net.byteflux.libby.BukkitLibraryManager;
-import net.byteflux.libby.Library;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WeaponConditions extends JavaPlugin
@@ -31,9 +29,11 @@ public class WeaponConditions extends JavaPlugin
 		m_singleton = this;
 		Logger = new LogCraft(this, LogLevel.DEVELOPER);
 		CommandAPI.onEnable(this);
+		Commands.RegisterCommands();
 
 		m_itemManager = new ItemManager();
-		getServer().getPluginManager().registerEvents(m_itemManager, this);
+		getServer().getPluginManager()
+				.registerEvents(m_itemManager, this);
 
 		m_itemManager.RegisterCondition(new OiledCondition());
 
