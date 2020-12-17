@@ -30,7 +30,7 @@ public class Commands
 								if (cond == null)
 									return;
 
-								WeaponConditions.Get().GetItemManager().AddCondition(hand, cond);
+								WeaponConditions.Get().GetItemManager().AddKeywordToItem(hand, cond);
 								WeaponConditions.Get().GetItemManager().UpdateItem(hand);
 							}))
 					.withSubcommand(new CommandAPICommand("remove")
@@ -48,7 +48,7 @@ public class Commands
 						if (cond == null)
 							return;
 
-						WeaponConditions.Get().GetItemManager().RemoveCondition(hand, cond);
+						WeaponConditions.Get().GetItemManager().RemoveKeywordFromItem(hand, cond);
 						WeaponConditions.Get().GetItemManager().UpdateItem(hand);
 					}))
 					.register();

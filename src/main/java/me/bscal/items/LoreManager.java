@@ -1,7 +1,6 @@
 package me.bscal.items;
 
 import me.bscal.WeaponConditions;
-import me.bscal.conditions.Condition;
 import me.bscal.logcraft.LogLevel;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,16 +13,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LoreManager<T>
+public class LoreManager<T extends LoreItem>
 {
 
-	private String m_header;
-	private String m_footer;
-	private String m_prefix;
-	private String m_splitStr;
-	private int m_splitOffset;
+	protected String m_header;
+	protected String m_footer;
+	protected String m_prefix;
+	protected String m_splitStr;
+	protected int m_splitOffset;
 
-	private final Map<String, T> m_keywords;
+	protected final Map<String, T> m_keywords;
 
 	public LoreManager()
 	{
@@ -54,9 +53,7 @@ public class LoreManager<T>
 			return;
 
 		GetKeywords(item.getLore()).forEach((key) -> {
-			T val = m_keywords.get(key);
-			if (val instanceof LoreItem)
-				((LoreItem) val).Update(item);
+			m_keywords.get(key).Update(item);
 		});
 	}
 
@@ -65,7 +62,7 @@ public class LoreManager<T>
 		inv.forEach(this::UpdateItem);
 	}
 
-	public void AddCondition(ItemStack item, Condition cond)
+	public void AddKeywordToItem(ItemStack item, LoreItem loreItem)
 	{
 		ItemMeta im = item.getItemMeta();
 
@@ -74,30 +71,33 @@ public class LoreManager<T>
 		{
 			lore = im.getLore();
 			LoreLookupData data = FindFirstLine(lore);
-			PushLineToLore(lore, cond.GetLocalizedName(), data.index, data.contains);
+			PushLineToLore(lore, loreItem.GetLocalizedName(), data.index, data.contains);
 		}
 		else
 		{
 			lore = new ArrayList<>(3);
-			PushLineToLore(lore, cond.GetLocalizedName(), 0, false);
+			PushLineToLore(lore, loreItem.GetLocalizedName(), 0, false);
 
 		}
 		im.setLore(lore);
 		item.setItemMeta(im);
-		//UpdateItem(item);
+
+		loreItem.Apply(item);
+
+		UpdateItem(item);
 
 		if (WeaponConditions.Logger.IsLevel(LogLevel.DEVELOPER))
 			WeaponConditions.Logger.Log("Adding Condition to item!");
 	}
 
-	public void RemoveCondition(ItemStack item, String key)
+	public void RemoveKeywordFromItem(ItemStack item, LoreItem loreItem)
 	{
 		ItemMeta im = item.getItemMeta();
 
 		if (im.hasLore())
 		{
 			List<String> lore = im.getLore();
-			LoreLookupData data = Find(lore, key);
+			LoreLookupData data = Find(lore, loreItem.GetName());
 			if (data.contains)
 			{
 				lore.remove(data.index);
@@ -105,6 +105,8 @@ public class LoreManager<T>
 				item.setItemMeta(im);
 			}
 		}
+
+		loreItem.Remove(item);
 
 		if (WeaponConditions.Logger.IsLevel(LogLevel.DEVELOPER))
 			WeaponConditions.Logger.Log("Removing Condition to item!");
@@ -183,7 +185,7 @@ public class LoreManager<T>
 		return new LoreLookupData(-1, false);
 	}
 
-	private List<String> GetKeywords(List<String> lore)
+	protected List<String> GetKeywords(List<String> lore)
 	{
 		List<String> list = new ArrayList<>();
 		boolean has = false;
@@ -211,7 +213,7 @@ public class LoreManager<T>
 		return list;
 	}
 
-	private void RemoveAllKeywords(List<String> lore, boolean removeHeaders)
+	protected void RemoveAllKeywords(List<String> lore, boolean removeHeaders)
 	{
 		boolean has = false;
 		for (int i = lore.size() - 1; i > -1; i--)
@@ -249,7 +251,7 @@ public class LoreManager<T>
 	 * @param index      - Insert index
 	 * @param hasHeaders - Does list have headers. If false will generate headers
 	 */
-	private void PushLineToLore(List<String> lore, String line, int index, boolean hasHeaders)
+	protected void PushLineToLore(List<String> lore, String line, int index, boolean hasHeaders)
 	{
 		if (!hasHeaders)
 		{
@@ -284,7 +286,7 @@ public class LoreManager<T>
 		m_keywords.put(key, obj);
 	}
 
-	public Object GetKeyword(String key)
+	public T GetKeyword(String key)
 	{
 		return m_keywords.get(key);
 	}
@@ -344,7 +346,7 @@ public class LoreManager<T>
 		this.m_splitOffset = m_splitOffset;
 	}
 
-	private static class LoreLookupData
+	protected static class LoreLookupData
 	{
 		final int index;
 		final boolean contains;
