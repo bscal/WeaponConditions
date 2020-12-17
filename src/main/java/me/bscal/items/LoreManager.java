@@ -263,6 +263,12 @@ public class LoreManager<T extends LoreItem>
 		lore.add(index, m_prefix + m_splitStr + line);
 	}
 
+	public void AppendToLine(List<String> lore, int index, String append)
+	{
+		String[] split = lore.get(index).split("\\(");
+		lore.set(index, split[0] + " (" + append + ")");
+	}
+
 	/**
 	 * -
 	 * ********************
