@@ -3,6 +3,9 @@ package me.bscal.items;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ItemConstants
 {
 
@@ -13,9 +16,15 @@ public class ItemConstants
 
 	public static final ItemStack[] SWORDS;
 
+	public static final ItemStack[] WEAPONS;
+
 	static
 	{
 		SWORDS = new ItemStack[] { VANILLA_IRON_SWORD, VANILLA_GOLD_SWORD, VANILLA_DIAMOND_SWORD,
+				VANILLA_NETHERITE_SWORD
+		};
+
+		WEAPONS = new ItemStack[] { VANILLA_IRON_SWORD, VANILLA_GOLD_SWORD, VANILLA_DIAMOND_SWORD,
 				VANILLA_NETHERITE_SWORD
 		};
 	}

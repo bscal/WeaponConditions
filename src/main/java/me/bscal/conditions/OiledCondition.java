@@ -6,14 +6,20 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.util.Date;
 
 public class OiledCondition extends Condition
 {
 
 	protected static final NamespacedKey KEY = new NamespacedKey(WeaponConditions.Get(), "Oiled");
-	protected static final float DURATION = 60.0f;
+	protected static final PersistentDataType TYPE = PersistentDataType.LONG;
+	protected static final float DURATION = 60.0f * 1000.0f;
+	protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("hh:mm:ss");
 
 	public OiledCondition()
 	{
@@ -24,7 +30,7 @@ public class OiledCondition extends Condition
 	public void Apply(ItemStack item)
 	{
 		ItemMeta im = item.getItemMeta();
-		im.getPersistentDataContainer().set(KEY, PersistentDataType.FLOAT, DURATION);
+		im.getPersistentDataContainer().set(KEY, TYPE, System.currentTimeMillis());
 		item.setItemMeta(im);
 	}
 
@@ -33,7 +39,7 @@ public class OiledCondition extends Condition
 	{
 		ItemMeta im = item.getItemMeta();
 		PersistentDataContainer pdc = im.getPersistentDataContainer();
-		if (pdc.has(KEY, PersistentDataType.FLOAT))
+		if (pdc.has(KEY, TYPE))
 		{
 			pdc.remove(KEY);
 			item.setItemMeta(im);
@@ -43,5 +49,38 @@ public class OiledCondition extends Condition
 	@Override
 	public void Update(ItemStack item)
 	{
+		ItemMeta im = item.getItemMeta();
+		PersistentDataContainer pdc = im.getPersistentDataContainer();
+		if (pdc.has(KEY, TYPE))
+		{
+			long start = (long) pdc.get(KEY, TYPE);
+			long diff = start + (long) DURATION - System.currentTimeMillis();
+			WeaponConditions.Logger.Log(diff);
+			if (diff < 0)
+			{
+				WeaponConditions.Get().GetItemManager().RemoveKeywordFromItem(item, this);
+				return;
+			}
+			im.setLore(WeaponConditions.Get()
+					.GetItemManager()
+					.UpdateKeywordData(im.getLore(), name,
+							FormattedTimeRemaining(Duration.ofMillis(diff))));
+			item.setItemMeta(im);
+		}
 	}
+
+	public static String FormattedTimeRemaining(Duration dur)
+	{
+		String str;
+		if (dur.toDaysPart() > 0)
+			str = dur.toDaysPart() + " Day(s)";
+		else if (dur.toHoursPart() > 0)
+			str = dur.toHoursPart() + " Hour(s)";
+		else if (dur.toMinutesPart() > 0)
+			str = dur.toMinutesPart() + " Minute(s)";
+		else
+			str = dur.toSecondsPart() + " Seconds(s)";
+		return "Duration: " + str;
+	}
+
 }

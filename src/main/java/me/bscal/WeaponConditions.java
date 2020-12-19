@@ -3,6 +3,7 @@ package me.bscal;
 import dev.jorel.commandapi.CommandAPI;
 import me.bscal.cmd.Commands;
 import me.bscal.conditions.OiledCondition;
+import me.bscal.conditions.SharpenedCondition;
 import me.bscal.items.ItemManager;
 import me.bscal.logcraft.LogCraft;
 import me.bscal.logcraft.LogLevel;
@@ -36,6 +37,9 @@ public class WeaponConditions extends JavaPlugin
 				.registerEvents(m_itemManager, this);
 
 		m_itemManager.RegisterCondition(new OiledCondition());
+		m_itemManager.RegisterCondition(new SharpenedCondition());
+
+		Logger.Log("Conditions registered: ", m_itemManager.GetKeywords().size());
 
 	}
 

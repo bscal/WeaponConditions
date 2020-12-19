@@ -8,10 +8,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class LoreManager<T extends LoreItem>
 {
@@ -98,15 +100,17 @@ public class LoreManager<T extends LoreItem>
 		{
 			List<String> lore = im.getLore();
 			LoreLookupData data = Find(lore, loreItem.GetName());
+			WeaponConditions.Logger.Log(data);
 			if (data.contains)
 			{
 				lore.remove(data.index);
 				im.setLore(lore);
 				item.setItemMeta(im);
+				loreItem.Remove(item);
 			}
 		}
 
-		loreItem.Remove(item);
+		UpdateItem(item);
 
 		if (WeaponConditions.Logger.IsLevel(LogLevel.DEVELOPER))
 			WeaponConditions.Logger.Log("Removing Condition to item!");
@@ -170,14 +174,15 @@ public class LoreManager<T extends LoreItem>
 				has = true;
 			if (!has)
 				continue;
-			else if (line.equals(m_footer))
+			if (line.equals(m_footer) || line.isBlank())
 				break;
 
 			line = ChatColor.stripColor(lore.get(i));
 
 			// Makes sures that any ChatColor charaters are not blocking
-			if (!line.startsWith(m_prefix))
-				break;
+			//if (!line.startsWith(m_prefix))
+			//continue;
+			//WeaponConditions.Logger.Log(line.charAt(0));
 
 			if (ExtractKeyword(line).equals(key))
 				return new LoreLookupData(i, true);
@@ -197,14 +202,15 @@ public class LoreManager<T extends LoreItem>
 				has = true;
 			if (!has)
 				continue;
-			else if (line.equals(m_footer))
+			if (line.equals(m_footer) || line.isBlank())
 				break;
 
 			line = ChatColor.stripColor(lore.get(i));
 
 			// Makes sures that any ChatColor charaters are not blocking
-			if (!line.startsWith(m_prefix))
-				break;
+			//if (!line.startsWith(m_prefix))
+			//continue;
+			//WeaponConditions.Logger.Log(line.charAt(0));
 
 			String key = ExtractKeyword(line);
 			if (m_keywords.containsKey(key))
@@ -263,10 +269,13 @@ public class LoreManager<T extends LoreItem>
 		lore.add(index, m_prefix + m_splitStr + line);
 	}
 
-	public void AppendToLine(List<String> lore, int index, String append)
+	public List<String> UpdateKeywordData(List<String> lore, String keyword, String append)
 	{
-		String[] split = lore.get(index).split("\\(");
-		lore.set(index, split[0] + " (" + append + ")");
+		int i = Find(lore, keyword).index;
+		String[] split = lore.get(i).split("\\[");
+		lore.set(i, MessageFormat.format("{0}{1}[{2}]", split[0], split[0].endsWith(" ") ? "" : " ",
+				append));
+		return lore;
 	}
 
 	/**
@@ -361,6 +370,12 @@ public class LoreManager<T extends LoreItem>
 		{
 			this.index = i;
 			this.contains = contains;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "LoreLookupData{" + "index=" + index + ", contains=" + contains + '}';
 		}
 	}
 

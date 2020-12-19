@@ -2,8 +2,12 @@ package me.bscal.conditions;
 
 import me.bscal.items.LoreItem;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class Condition implements LoreItem
@@ -15,13 +19,16 @@ public abstract class Condition implements LoreItem
 
 	public final String name;
 	public final ChatColor color;
-	public final ItemStack[] validItems;
+	public final List<ItemStack> validItems;
 
 	public Condition(final String name, final ChatColor color, final ItemStack... validItems)
 	{
 		this.name = name;
 		this.color = color;
-		this.validItems = validItems;
+		if (validItems.length != 0)
+			this.validItems = Arrays.asList(validItems);
+		else
+			this.validItems = new ArrayList<>();
 	}
 
 	@Override
@@ -34,6 +41,11 @@ public abstract class Condition implements LoreItem
 	public String GetName()
 	{
 		return name;
+	}
+
+	public boolean IsValid(ItemStack item)
+	{
+		return item.getType() != Material.AIR && item.hasItemMeta() && validItems.contains(item);
 	}
 
 	/**
