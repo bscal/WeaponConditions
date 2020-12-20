@@ -7,6 +7,8 @@ import me.bscal.conditions.SharpenedCondition;
 import me.bscal.items.ItemManager;
 import me.bscal.logcraft.LogCraft;
 import me.bscal.logcraft.LogLevel;
+import me.bscal.utils.DamageMeter;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WeaponConditions extends JavaPlugin
@@ -33,8 +35,10 @@ public class WeaponConditions extends JavaPlugin
 		Commands.RegisterCommands();
 
 		m_itemManager = new ItemManager();
-		getServer().getPluginManager()
-				.registerEvents(m_itemManager, this);
+
+		PluginManager pm = getServer().getPluginManager();
+		pm.registerEvents(m_itemManager, this);
+		pm.registerEvents(new DamageMeter(), this);
 
 		m_itemManager.RegisterCondition(new OiledCondition());
 		m_itemManager.RegisterCondition(new SharpenedCondition());

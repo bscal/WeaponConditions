@@ -1,6 +1,7 @@
 package me.bscal.conditions;
 
 import me.bscal.items.ItemConstants;
+import me.bscal.utils.ItemUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -20,17 +21,13 @@ public class SharpenedCondition extends Condition
 
 	public SharpenedCondition()
 	{
-		super(NAME, GOOD, ItemConstants.WEAPONS);
+		super(NAME, GOOD, (ItemStack[]) ItemConstants.WEAPONS);
 	}
 
 	@Override
 	public void Apply(ItemStack item)
 	{
-		ItemMeta im = item.getItemMeta();
-
-		im.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, MODIFIER);
-
-		item.setItemMeta(im);
+		ItemUtils.AddAttribute(item, Attribute.GENERIC_ATTACK_DAMAGE, MODIFIER, true);
 	}
 
 	@Override

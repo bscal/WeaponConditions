@@ -8,10 +8,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.Date;
 
 public class OiledCondition extends Condition
 {
@@ -63,7 +61,7 @@ public class OiledCondition extends Condition
 			}
 			im.setLore(WeaponConditions.Get()
 					.GetItemManager()
-					.UpdateKeywordData(im.getLore(), name,
+					.SetLoreVariable(im.getLore(), name,
 							FormattedTimeRemaining(Duration.ofMillis(diff))));
 			item.setItemMeta(im);
 		}

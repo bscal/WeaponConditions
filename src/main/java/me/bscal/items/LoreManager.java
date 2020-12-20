@@ -219,6 +219,35 @@ public class LoreManager<T extends LoreItem>
 		return list;
 	}
 
+	protected List<String> GetKeywordLines(List<String> lore)
+	{
+		List<String> list = new ArrayList<>();
+		boolean has = false;
+		for (int i = 0; i < lore.size(); i++)
+		{
+			String line = lore.get(i);
+
+			if (line.equals(m_header))
+				has = true;
+			if (!has)
+				continue;
+			if (line.equals(m_footer) || line.isBlank())
+				break;
+
+			line = ChatColor.stripColor(lore.get(i));
+
+			// Makes sures that any ChatColor charaters are not blocking
+			//if (!line.startsWith(m_prefix))
+			//continue;
+			//WeaponConditions.Logger.Log(line.charAt(0));
+
+			String key = ExtractKeyword(line);
+			if (m_keywords.containsKey(key))
+				list.add(line);
+		}
+		return list;
+	}
+
 	protected void RemoveAllKeywords(List<String> lore, boolean removeHeaders)
 	{
 		boolean has = false;
@@ -269,14 +298,16 @@ public class LoreManager<T extends LoreItem>
 		lore.add(index, m_prefix + m_splitStr + line);
 	}
 
-	public List<String> UpdateKeywordData(List<String> lore, String keyword, String append)
+	public List<String> SetLoreVariable(List<String> lore, String keyword, String var)
 	{
 		int i = Find(lore, keyword).index;
 		String[] split = lore.get(i).split("\\[");
 		lore.set(i, MessageFormat.format("{0}{1}[{2}]", split[0], split[0].endsWith(" ") ? "" : " ",
-				append));
+				var));
 		return lore;
 	}
+
+
 
 	/**
 	 * -
@@ -376,6 +407,36 @@ public class LoreManager<T extends LoreItem>
 		public String toString()
 		{
 			return "LoreLookupData{" + "index=" + index + ", contains=" + contains + '}';
+		}
+	}
+
+	protected static class LoreLookupLine extends LoreLookupData
+	{
+
+		final String line;
+
+		public LoreLookupLine(int i, boolean contains, String line)
+		{
+			super(i, contains);
+			this.line = line;
+		}
+	}
+
+	public static class LoreVariable
+	{
+		final String keyword;
+		final int index;
+		final String var;
+		final Object value;
+		final boolean isSet;
+
+		public LoreVariable(String keyword, int index, String var, Object value, boolean isSet)
+		{
+			this.keyword = keyword;
+			this.index = index;
+			this.var = var;
+			this.value = value;
+			this.isSet = isSet;
 		}
 	}
 
