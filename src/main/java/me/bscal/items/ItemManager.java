@@ -13,13 +13,14 @@ import org.bukkit.inventory.PlayerInventory;
 public class ItemManager extends LoreManager<Condition> implements Listener
 {
 
-	private static final String LORE_PREFIX = ChatColor.GRAY + "-";
+	private static final ChatColor LORE_PREFIX_COLOR = ChatColor.GRAY;
+	private static final char LORE_PREFIX = '-';
 	private static final String LORE_HEADER = ChatColor.GRAY + ">> Conditions <<";
 	private static final String LORE_FOOTER = " ";
 
 	public ItemManager()
 	{
-		super(LORE_HEADER, LORE_FOOTER, LORE_PREFIX);
+		super(LORE_HEADER, LORE_FOOTER, LORE_PREFIX, LORE_PREFIX_COLOR);
 	}
 
 	public Condition GetCondition(String name)

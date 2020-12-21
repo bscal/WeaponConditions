@@ -13,14 +13,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class LoreManager<T extends LoreItem>
 {
 
 	protected String m_header;
 	protected String m_footer;
-	protected String m_prefix;
+	protected ChatColor m_color;
+	protected char m_prefix;
 	protected String m_splitStr;
 	protected int m_splitOffset;
 
@@ -28,20 +28,21 @@ public class LoreManager<T extends LoreItem>
 
 	public LoreManager()
 	{
-		this("", "", "");
+		this("", "", Character.MIN_VALUE, ChatColor.WHITE);
 	}
 
 	public LoreManager(String header, String footer)
 	{
-		this(header, footer, "");
+		this(header, footer, Character.MIN_VALUE, ChatColor.WHITE);
 	}
 
-	public LoreManager(String header, String footer, String prefix)
+	public LoreManager(String header, String footer, char prefix, ChatColor prefixColor)
 	{
 		m_header = header;
 		m_footer = footer;
-		if (!prefix.isBlank())
+		if (!(prefix == Character.MIN_VALUE))
 		{
+			m_color = prefixColor;
 			m_prefix = prefix;
 			m_splitStr = " ";
 			m_splitOffset = 1;
@@ -165,20 +166,21 @@ public class LoreManager<T extends LoreItem>
 	 */
 	public LoreLookupData Find(List<String> lore, String key)
 	{
-		boolean has = false;
 		for (int i = 0; i < lore.size(); i++)
 		{
-			String line = lore.get(i);
+			String line = ChatColor.stripColor(lore.get(i));
 
-			if (line.equals(m_header))
-				has = true;
-			if (!has)
+			if (line.isBlank() || !(m_prefix == Character.MIN_VALUE) && line.substring(0, 1)
+					.equals(m_prefix))
 				continue;
-			if (line.equals(m_footer) || line.isBlank())
-				break;
 
-			line = ChatColor.stripColor(lore.get(i));
-
+			//if (line.equals(m_header))
+			//has = true;
+			//if (!has)
+			//continue;
+			//if (line.equals(m_footer) || line.isBlank())
+			//break;
+			//line = ChatColor.stripColor(lore.get(i));
 			// Makes sures that any ChatColor charaters are not blocking
 			//if (!line.startsWith(m_prefix))
 			//continue;
@@ -190,28 +192,34 @@ public class LoreManager<T extends LoreItem>
 		return new LoreLookupData(-1, false);
 	}
 
+	public LoreLine FindLine(List<String> lore, String key)
+	{
+		for (int i = 0; i < lore.size(); i++)
+		{
+			String line = ChatColor.stripColor(lore.get(i));
+
+			if (line.isBlank())
+				continue;
+
+			String[] split = line.split(" ");
+			char c = split[0].charAt(0);
+			char prefix = IsPrefix(c) ? c : ' ';
+			String keyword = ExtractKeyword(line);
+
+			if (m_keywords.containsKey(keyword))
+			{
+				return new LoreLine(prefix, keyword, i, true, GetLoreVariable(line));
+			}
+		}
+		return new LoreLine(Character.MIN_VALUE, key, -1, false, null);
+	}
+
 	protected List<String> GetKeywords(List<String> lore)
 	{
 		List<String> list = new ArrayList<>();
-		boolean has = false;
-		for (int i = 0; i < lore.size(); i++)
+		for (String s : lore)
 		{
-			String line = lore.get(i);
-
-			if (line.equals(m_header))
-				has = true;
-			if (!has)
-				continue;
-			if (line.equals(m_footer) || line.isBlank())
-				break;
-
-			line = ChatColor.stripColor(lore.get(i));
-
-			// Makes sures that any ChatColor charaters are not blocking
-			//if (!line.startsWith(m_prefix))
-			//continue;
-			//WeaponConditions.Logger.Log(line.charAt(0));
-
+			String line = ChatColor.stripColor(s);
 			String key = ExtractKeyword(line);
 			if (m_keywords.containsKey(key))
 				list.add(key);
@@ -222,27 +230,10 @@ public class LoreManager<T extends LoreItem>
 	protected List<String> GetKeywordLines(List<String> lore)
 	{
 		List<String> list = new ArrayList<>();
-		boolean has = false;
-		for (int i = 0; i < lore.size(); i++)
+		for (String s : lore)
 		{
-			String line = lore.get(i);
-
-			if (line.equals(m_header))
-				has = true;
-			if (!has)
-				continue;
-			if (line.equals(m_footer) || line.isBlank())
-				break;
-
-			line = ChatColor.stripColor(lore.get(i));
-
-			// Makes sures that any ChatColor charaters are not blocking
-			//if (!line.startsWith(m_prefix))
-			//continue;
-			//WeaponConditions.Logger.Log(line.charAt(0));
-
-			String key = ExtractKeyword(line);
-			if (m_keywords.containsKey(key))
+			String line = ChatColor.stripColor(s);
+			if (m_keywords.containsKey(ExtractKeyword(line)))
 				list.add(line);
 		}
 		return list;
@@ -250,31 +241,21 @@ public class LoreManager<T extends LoreItem>
 
 	protected void RemoveAllKeywords(List<String> lore, boolean removeHeaders)
 	{
-		boolean has = false;
 		for (int i = lore.size() - 1; i > -1; i--)
 		{
 			String line = lore.get(i);
-			if (!has)
-			{
-				if (line.equals(m_footer))
-				{
-					has = true;
-					if (removeHeaders)
-						lore.remove(i);
-				}
 
-				line = ChatColor.stripColor(lore.get(i));
-				if (m_keywords.containsKey(line))
-					has = true;
+			if (removeHeaders && !m_header.isBlank() && line.equals(
+					m_header) || !m_footer.isBlank() && line.equals(m_footer))
+			{
+				lore.remove(i);
 				continue;
 			}
+
+			line = ChatColor.stripColor(lore.get(i));
+			if (m_keywords.containsKey(ExtractKeyword(line)))
+				continue;
 			lore.remove(i);
-			if (line.equals(m_header))
-			{
-				if (removeHeaders)
-					lore.remove(i);
-				break;
-			}
 		}
 	}
 
@@ -288,14 +269,18 @@ public class LoreManager<T extends LoreItem>
 	 */
 	protected void PushLineToLore(List<String> lore, String line, int index, boolean hasHeaders)
 	{
+		String formatted = MessageFormat.format("{0}{1}{2}{4}", m_color, m_prefix, m_splitStr,
+				line);
 		if (!hasHeaders)
 		{
-			lore.add(index, m_footer);
-			lore.add(index, m_prefix + m_splitStr + line);
-			lore.add(index, m_header);
+			if (!m_footer.isEmpty())
+				lore.add(index, m_footer);
+			lore.add(index, formatted);
+			if (!m_header.isEmpty())
+				lore.add(index, m_header);
 			return;
 		}
-		lore.add(index, m_prefix + m_splitStr + line);
+		lore.add(index, formatted);
 	}
 
 	public List<String> SetLoreVariable(List<String> lore, String keyword, String var)
@@ -307,19 +292,25 @@ public class LoreManager<T extends LoreItem>
 		return lore;
 	}
 
-
-
-	/**
-	 * -
-	 * ********************
-	 * * Public functions *
-	 * ********************
-	 */
+	public LoreVariable GetLoreVariable(String line)
+	{
+		String[] split = line.split("\\[");
+		if (split.length > 0)
+		{
+			return new LoreVariable(split[1].substring(0, split[1].length() - 1), true);
+		}
+		return new LoreVariable("", false);
+	}
 
 	public String ExtractKeyword(String line)
 	{
 		String[] split = line.split(m_splitStr);
 		return (split.length > m_splitOffset) ? split[m_splitOffset] : "";
+	}
+
+	public boolean IsPrefix(char prefix)
+	{
+		return prefix == m_prefix || prefix == '+' || prefix == '-';
 	}
 
 	public boolean ContainsKey(String key)
@@ -362,12 +353,12 @@ public class LoreManager<T extends LoreItem>
 		this.m_footer = m_footer;
 	}
 
-	public String getPrefix()
+	public char getPrefix()
 	{
 		return m_prefix;
 	}
 
-	public void setPrefix(String m_prefix)
+	public void setPrefix(char m_prefix)
 	{
 		this.m_prefix = m_prefix;
 	}
@@ -410,33 +401,33 @@ public class LoreManager<T extends LoreItem>
 		}
 	}
 
-	protected static class LoreLookupLine extends LoreLookupData
+	public static class LoreVariable
 	{
+		final String var;
+		final boolean isSet;
 
-		final String line;
-
-		public LoreLookupLine(int i, boolean contains, String line)
+		public LoreVariable(String var, boolean isSet)
 		{
-			super(i, contains);
-			this.line = line;
+			this.var = var;
+			this.isSet = isSet;
 		}
 	}
 
-	public static class LoreVariable
+	public static class LoreLine
 	{
+		final char prefix;
 		final String keyword;
 		final int index;
-		final String var;
-		final Object value;
-		final boolean isSet;
+		final boolean contains;
+		final LoreVariable var;
 
-		public LoreVariable(String keyword, int index, String var, Object value, boolean isSet)
+		public LoreLine(char prefix, String keyword, int index, boolean contains, LoreVariable var)
 		{
+			this.prefix = prefix;
 			this.keyword = keyword;
 			this.index = index;
+			this.contains = contains;
 			this.var = var;
-			this.value = value;
-			this.isSet = isSet;
 		}
 	}
 
