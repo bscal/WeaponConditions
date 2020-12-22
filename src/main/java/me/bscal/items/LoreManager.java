@@ -170,8 +170,7 @@ public class LoreManager<T extends LoreItem>
 		{
 			String line = ChatColor.stripColor(lore.get(i));
 
-			if (line.isBlank() || !(m_prefix == Character.MIN_VALUE) && line.substring(0, 1)
-					.equals(m_prefix))
+			if (line.isBlank())
 				continue;
 
 			//if (line.equals(m_header))
@@ -192,7 +191,7 @@ public class LoreManager<T extends LoreItem>
 		return new LoreLookupData(-1, false);
 	}
 
-	public LoreLine FindLine(List<String> lore, String key)
+	public LoreLine FindLine(List<String> lore, String key, int offset)
 	{
 		for (int i = 0; i < lore.size(); i++)
 		{
@@ -204,7 +203,7 @@ public class LoreManager<T extends LoreItem>
 			String[] split = line.split(" ");
 			char c = split[0].charAt(0);
 			char prefix = IsPrefix(c) ? c : ' ';
-			String keyword = ExtractKeyword(line);
+			String keyword = ExtractKeyword(line, offset);
 
 			if (m_keywords.containsKey(keyword))
 			{
@@ -292,20 +291,26 @@ public class LoreManager<T extends LoreItem>
 		return lore;
 	}
 
-	public LoreVariable GetLoreVariable(String line)
+	public String GetLoreVariable(String line)
 	{
 		String[] split = line.split("\\[");
 		if (split.length > 0)
 		{
-			return new LoreVariable(split[1].substring(0, split[1].length() - 1), true);
+			return split[1].substring(0, split[1].length() - 1);
 		}
-		return new LoreVariable("", false);
+		return "";
 	}
 
 	public String ExtractKeyword(String line)
 	{
 		String[] split = line.split(m_splitStr);
 		return (split.length > m_splitOffset) ? split[m_splitOffset] : "";
+	}
+
+	public String ExtractKeyword(String line, int offset)
+	{
+		String[] split = line.split(m_splitStr);
+		return (split.length > offset) ? split[offset] : "";
 	}
 
 	public boolean IsPrefix(char prefix)
@@ -400,35 +405,4 @@ public class LoreManager<T extends LoreItem>
 			return "LoreLookupData{" + "index=" + index + ", contains=" + contains + '}';
 		}
 	}
-
-	public static class LoreVariable
-	{
-		final String var;
-		final boolean isSet;
-
-		public LoreVariable(String var, boolean isSet)
-		{
-			this.var = var;
-			this.isSet = isSet;
-		}
-	}
-
-	public static class LoreLine
-	{
-		final char prefix;
-		final String keyword;
-		final int index;
-		final boolean contains;
-		final LoreVariable var;
-
-		public LoreLine(char prefix, String keyword, int index, boolean contains, LoreVariable var)
-		{
-			this.prefix = prefix;
-			this.keyword = keyword;
-			this.index = index;
-			this.contains = contains;
-			this.var = var;
-		}
-	}
-
 }
