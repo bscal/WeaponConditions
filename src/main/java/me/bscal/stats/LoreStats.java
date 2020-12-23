@@ -5,6 +5,8 @@ import me.bscal.items.LoreManager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
+
 public class LoreStats extends LoreManager<Stat>
 {
 
@@ -21,16 +23,33 @@ public class LoreStats extends LoreManager<Stat>
 	public void AddStatToItem(ItemStack item, Stat stat)
 	{
 		ItemMeta im = item.getItemMeta();
+		List<String> lore;
 		if (im.hasLore())
 		{
-			LoreLine line = FindLine(item.getLore(), stat.name, 2);
+			lore = item.getLore();
+			LoreLookupStat line = FindStat(lore, stat.name);
 
-			Stat loreStat = Stat.LoreLineToStat(line);
+			Stat loreStat = Stat.FromLore(line);
 
 			if (loreStat != null && loreStat.equals(stat))
 			{
 				// TODO add stat
+
+				float total = 0;
+
+				if (stat.operation == Operation.ADD)
+					total = loreStat.value + stat.value;
+				else if (stat.operation == Operation.MULTIPLY)
+					total = loreStat.value * stat.value;
+
+				SetStat(lore, line, loreStat.CreateLine(total));
+
 			}
 		}
+	}
+
+	public void SetStatLine(LoreLine line)
+	{
+
 	}
 }

@@ -2,6 +2,7 @@ package me.bscal.stats;
 
 import me.bscal.items.LoreItem;
 import me.bscal.items.LoreLine;
+import me.bscal.items.LoreManager;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
@@ -42,22 +43,19 @@ public class Stat implements LoreItem
 		this.nameColor = nameColor;
 	}
 
-	public static Stat LoreLineToStat(LoreLine line)
+	public static Stat FromLore(LoreManager.LoreLookupStat line)
 	{
 		if (!line.contains)
 			return null;
 
-		return new Stat(line.prefix, line.keyword, GetValueFromLore(line));
+		return new Stat(line.prefix, line.name, line.value);
 	}
 
-	private static float GetValueFromLore(LoreLine line)
+	public String CreateLine(float newVal)
 	{
-		float val = Float.parseFloat(line.var);
-
-		if (Float.isNaN(val))
-			return 0;
-
-		return (line.prefix == '-') ? val *= -1 : val;
+		return MessageFormat.format("{3}{0}{1} {4}{2}",
+				(prefix == Character.MIN_VALUE) ? "" : prefix + " ", fFormat.format(newVal), name, prefixColor,
+				nameColor);
 	}
 
 	@Override

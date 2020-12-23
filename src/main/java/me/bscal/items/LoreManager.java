@@ -318,6 +318,58 @@ public class LoreManager<T extends LoreItem>
 		return prefix == m_prefix || prefix == '+' || prefix == '-';
 	}
 
+	/**-
+	 * **************
+	 * * Lore Stats *
+	 * **************
+	 */
+
+	public LoreLookupStat FindStat(List<String> lore, String statName)
+	{
+		for (int i = 0; i < lore.size(); i++)
+		{
+			String line = ChatColor.stripColor(lore.get(i));
+
+			if (line.isBlank())
+				continue;
+
+			String[] split = line.split(" ");
+			char c = split[0].charAt(0);
+			char prefix = IsPrefix(c) ? c : ' ';
+			String valStr = split[1];
+			String keyword = split[2];
+
+			if (m_keywords.containsKey(keyword))
+			{
+				return new LoreLookupStat(i, true, prefix, ParseValue(prefix, valStr), keyword);
+			}
+		}
+		return new LoreLookupStat(-1, false, Character.MIN_VALUE, 0, statName);
+	}
+
+	public void PushStat(List<String> lore, String statStr)
+	{
+		lore.add(statStr);
+	}
+
+	public void SetStat(List<String> lore, LoreLookupStat loreStat, String statStr)
+	{
+		if (loreStat.value == 0)
+			lore.remove(loreStat.index);
+
+		lore.set(loreStat.index, statStr);
+	}
+
+	public static float ParseValue(char prefix, String valueStr)
+	{
+		float val = Float.parseFloat(valueStr);
+
+		if (Float.isNaN(val))
+			return 0;
+
+		return (prefix == '-') ? val *= -1 : val;
+	}
+
 	public boolean ContainsKey(String key)
 	{
 		return m_keywords.containsKey(key);
@@ -390,8 +442,8 @@ public class LoreManager<T extends LoreItem>
 
 	protected static class LoreLookupData
 	{
-		final int index;
-		final boolean contains;
+		public final int index;
+		public final boolean contains;
 
 		public LoreLookupData(int i, boolean contains)
 		{
@@ -403,6 +455,23 @@ public class LoreManager<T extends LoreItem>
 		public String toString()
 		{
 			return "LoreLookupData{" + "index=" + index + ", contains=" + contains + '}';
+		}
+	}
+
+	public static class LoreLookupStat extends LoreLookupData
+	{
+		public final char prefix;
+		public final float value;
+		public final String name;
+
+
+		public LoreLookupStat(int i, boolean contains, char prefix, float value, String name)
+		{
+			super(i, contains);
+			this.prefix = prefix;
+			this.value = value;
+			this.name = name;
+
 		}
 	}
 }
