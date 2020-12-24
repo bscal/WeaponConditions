@@ -2,6 +2,7 @@ package me.bscal.conditions;
 
 import me.bscal.WeaponConditions;
 import me.bscal.items.ItemConstants;
+import me.bscal.lore.ColorConstants;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -21,7 +22,7 @@ public class OiledCondition extends Condition
 
 	public OiledCondition()
 	{
-		super("Oiled", GOOD, ItemConstants.SWORDS);
+		super("Oiled", ColorConstants.GOOD, ItemConstants.SWORDS);
 	}
 
 	@Override

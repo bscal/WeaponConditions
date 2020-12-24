@@ -1,8 +1,8 @@
 package me.bscal.conditions;
 
 import me.bscal.items.ItemConstants;
+import me.bscal.lore.ColorConstants;
 import me.bscal.utils.ItemUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
@@ -21,7 +21,7 @@ public class SharpenedCondition extends Condition
 
 	public SharpenedCondition()
 	{
-		super(NAME, GOOD, (ItemStack[]) ItemConstants.WEAPONS);
+		super(NAME, ColorConstants.GOOD, (ItemStack[]) ItemConstants.WEAPONS);
 	}
 
 	@Override

@@ -1,14 +1,14 @@
 package me.bscal.conditions;
 
 import me.bscal.items.ItemConstants;
-import org.bukkit.ChatColor;
+import me.bscal.lore.ColorConstants;
 import org.bukkit.inventory.ItemStack;
 
 public class DulledCondition extends Condition
 {
 	public DulledCondition()
 	{
-		super("Dulled", BAD, ItemConstants.WEAPONS);
+		super("Dulled", ColorConstants.BAD, ItemConstants.WEAPONS);
 	}
 
 	@Override

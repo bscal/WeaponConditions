@@ -3,10 +3,6 @@ package me.bscal.items;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class ItemConstants
 {
 
