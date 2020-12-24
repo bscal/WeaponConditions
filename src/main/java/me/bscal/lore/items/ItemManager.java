@@ -1,6 +1,7 @@
-package me.bscal.items;
+package me.bscal.lore.items;
 
 import me.bscal.conditions.Condition;
+import me.bscal.lore.LoreManager;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
