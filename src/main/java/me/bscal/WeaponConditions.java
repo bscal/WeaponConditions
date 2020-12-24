@@ -2,11 +2,14 @@ package me.bscal;
 
 import dev.jorel.commandapi.CommandAPI;
 import me.bscal.cmd.Commands;
+import me.bscal.cmd.StatCommands;
 import me.bscal.conditions.OiledCondition;
 import me.bscal.conditions.SharpenedCondition;
-import me.bscal.items.ItemManager;
+import me.bscal.lore.items.ItemManager;
 import me.bscal.logcraft.LogCraft;
 import me.bscal.logcraft.LogLevel;
+import me.bscal.lore.stats.LoreStats;
+import me.bscal.lore.stats.statspack.base.DamageStat;
 import me.bscal.utils.DamageMeter;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +22,7 @@ public class WeaponConditions extends JavaPlugin
 	private static WeaponConditions m_singleton;
 
 	private ItemManager m_itemManager;
+	private LoreStats m_loreStats;
 
 	@Override
 	public void onLoad()
@@ -33,6 +37,7 @@ public class WeaponConditions extends JavaPlugin
 		Logger = new LogCraft(this, LogLevel.DEVELOPER);
 		CommandAPI.onEnable(this);
 		Commands.RegisterCommands();
+		StatCommands.RegisterStatCommand();
 
 		m_itemManager = new ItemManager();
 
@@ -45,6 +50,10 @@ public class WeaponConditions extends JavaPlugin
 
 		Logger.Log("Conditions registered: ", m_itemManager.GetKeywords().size());
 
+		m_loreStats = new LoreStats();
+		m_loreStats.RegisterStat(new DamageStat(), this);
+
+		Logger.Log("Stats registered: ", m_loreStats.GetKeywords().size());
 	}
 
 	public static WeaponConditions Get()
@@ -56,4 +65,6 @@ public class WeaponConditions extends JavaPlugin
 	{
 		return m_itemManager;
 	}
+
+	public LoreStats GetLoreStats() { return m_loreStats; }
 }

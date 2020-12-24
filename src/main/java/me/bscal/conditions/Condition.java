@@ -1,6 +1,6 @@
 package me.bscal.conditions;
 
-import me.bscal.items.LoreItem;
+import me.bscal.lore.LoreItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,10 +12,6 @@ import java.util.Objects;
 
 public abstract class Condition implements LoreItem
 {
-
-	public static final ChatColor GOOD = ChatColor.GREEN;
-	public static final ChatColor BAD = ChatColor.RED;
-	public static final ChatColor NEUTRAL = ChatColor.GRAY;
 
 	public final String name;
 	public final ChatColor color;
