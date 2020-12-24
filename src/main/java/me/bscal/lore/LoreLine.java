@@ -1,4 +1,4 @@
-package me.bscal.items;
+package me.bscal.lore;
 
 public class LoreLine
 {

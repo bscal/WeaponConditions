@@ -1,4 +1,4 @@
-package me.bscal.items;
+package me.bscal.lore;
 
 import me.bscal.WeaponConditions;
 import me.bscal.logcraft.LogLevel;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LoreManager<T extends LoreItem>
+public class LoreManager<T>
 {
 
 	protected String m_header;
@@ -56,7 +56,9 @@ public class LoreManager<T extends LoreItem>
 			return;
 
 		GetKeywords(item.getLore()).forEach((key) -> {
-			m_keywords.get(key).Update(item);
+			T obj = m_keywords.get(key);
+			if (obj instanceof LoreItem)
+				((LoreItem)obj).Update(item);
 		});
 	}
 
@@ -316,58 +318,6 @@ public class LoreManager<T extends LoreItem>
 	public boolean IsPrefix(char prefix)
 	{
 		return prefix == m_prefix || prefix == '+' || prefix == '-';
-	}
-
-	/**-
-	 * **************
-	 * * Lore Stats *
-	 * **************
-	 */
-
-	public LoreLookupStat FindStat(List<String> lore, String statName)
-	{
-		for (int i = 0; i < lore.size(); i++)
-		{
-			String line = ChatColor.stripColor(lore.get(i));
-
-			if (line.isBlank())
-				continue;
-
-			String[] split = line.split(" ");
-			char c = split[0].charAt(0);
-			char prefix = IsPrefix(c) ? c : ' ';
-			String valStr = split[1];
-			String keyword = split[2];
-
-			if (m_keywords.containsKey(keyword))
-			{
-				return new LoreLookupStat(i, true, prefix, ParseValue(prefix, valStr), keyword);
-			}
-		}
-		return new LoreLookupStat(-1, false, Character.MIN_VALUE, 0, statName);
-	}
-
-	public void PushStat(List<String> lore, String statStr)
-	{
-		lore.add(statStr);
-	}
-
-	public void SetStat(List<String> lore, LoreLookupStat loreStat, String statStr)
-	{
-		if (loreStat.value == 0)
-			lore.remove(loreStat.index);
-
-		lore.set(loreStat.index, statStr);
-	}
-
-	public static float ParseValue(char prefix, String valueStr)
-	{
-		float val = Float.parseFloat(valueStr);
-
-		if (Float.isNaN(val))
-			return 0;
-
-		return (prefix == '-') ? val *= -1 : val;
 	}
 
 	public boolean ContainsKey(String key)
