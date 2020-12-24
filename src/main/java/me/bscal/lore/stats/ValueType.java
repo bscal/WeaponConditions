@@ -1,4 +1,4 @@
-package me.bscal.stats;
+package me.bscal.lore.stats;
 
 public enum ValueType
 {

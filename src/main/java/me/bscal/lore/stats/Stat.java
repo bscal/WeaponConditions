@@ -1,91 +1,59 @@
-package me.bscal.stats;
+package me.bscal.lore.stats;
 
-import me.bscal.items.LoreItem;
-import me.bscal.items.LoreLine;
-import me.bscal.items.LoreManager;
+import me.bscal.lore.ColorConstants;
 import org.bukkit.ChatColor;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.Objects;
 
-public class Stat implements LoreItem
+public abstract class Stat implements Listener
 {
 
 	private static final DecimalFormat fFormat = new DecimalFormat("#.00");
 
-	public final char prefix;
 	public final String name;
-	public final float value;
+	public final ChatColor prefixColor;
+	public final ChatColor nameColor;
+	public final ValueType type;
 
-	public Operation operation;
-	public ValueType type;
-	public ChatColor prefixColor;
-	public ChatColor nameColor;
-
-	public Stat(char prefix, String name, float value)
+	public Stat(String name, ChatColor prefixColor, ChatColor nameColor, ValueType type)
 	{
 		this.name = name;
-		this.prefix = prefix;
-		this.value = value;
-	}
-
-	public Stat(char prefix, String name, float value, Operation operation, ValueType type,
-			ChatColor prefixColor, ChatColor nameColor)
-	{
-		this.prefix = prefix;
-		this.name = name;
-		this.value = value;
-		this.operation = operation;
-		this.type = type;
 		this.prefixColor = prefixColor;
 		this.nameColor = nameColor;
+		this.type = type;
 	}
 
-	public static Stat FromLore(LoreManager.LoreLookupStat line)
+	public StatContainer CreateContainer(char prefix, float value, Operation operation)
 	{
-		if (!line.contains)
-			return null;
-
-		return new Stat(line.prefix, line.name, line.value);
+		return new StatContainer(prefix, value, operation, this);
 	}
 
-	public String CreateLine(float newVal)
+	public String CreateLine(StatContainer container)
 	{
+		ChatColor preColor;
+		if (prefixColor == ColorConstants.GOOD)
+			preColor = (container.value > 0f) ? ColorConstants.GOOD : ColorConstants.BAD;
+		else if (prefixColor == ColorConstants.BAD)
+			preColor = (container.value > 0f) ? ColorConstants.BAD : ColorConstants.GOOD;
+		else
+			preColor = ColorConstants.NEUTRAL;
+
+		if (container.value < 0.0f) // TODO
+			container.prefix = Character.MIN_VALUE;
+		else
+			container.prefix = '+';
+
 		return MessageFormat.format("{3}{0}{1} {4}{2}",
-				(prefix == Character.MIN_VALUE) ? "" : prefix + " ", fFormat.format(newVal), name, prefixColor,
-				nameColor);
+				(container.prefix == Character.MIN_VALUE) ? "" : container.prefix,
+				fFormat.format(container.value), name, preColor, nameColor);
 	}
 
-	@Override
-	public void Apply(ItemStack item)
-	{
-	}
-
-	@Override
-	public void Remove(ItemStack item)
-	{
-	}
-
-	@Override
-	public void Update(ItemStack item)
-	{
-	}
-
-	@Override
-	public String GetName()
-	{
-		return name;
-	}
-
-	@Override
-	public String GetLocalizedName()
-	{
-		return MessageFormat.format("{3}{0}{1} {4}{2}",
-				(prefix == Character.MIN_VALUE) ? "" : prefix + " ", fFormat.format(value), name, prefixColor,
-				nameColor);
-	}
+	// TODO for procs
+	public boolean HandleProcess(ItemStack item) {return false;}
 
 	@Override
 	public boolean equals(Object o)
