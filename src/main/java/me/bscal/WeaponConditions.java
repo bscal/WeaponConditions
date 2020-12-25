@@ -51,7 +51,7 @@ public class WeaponConditions extends JavaPlugin
 		Logger.Log("Conditions registered: ", m_itemManager.GetKeywords().size());
 
 		m_loreStats = new LoreStats();
-		m_loreStats.RegisterStat(new DamageStat(), this);
+		m_loreStats.RegisterStatEvent(new DamageStat(), this);
 
 		Logger.Log("Stats registered: ", m_loreStats.GetKeywords().size());
 	}

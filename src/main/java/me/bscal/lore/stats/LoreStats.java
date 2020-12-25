@@ -21,12 +21,15 @@ public class LoreStats extends LoreManager<Stat>
 
 	private final static int SPLIT_OFFSET = 1;
 
-	public void RegisterStat(Stat stat, Plugin plugin)
+	public void RegisterStat(Stat stat)
 	{
 		m_keywords.put(stat.name, stat);
+	}
 
-		if (stat.getClass().isAnnotationPresent(EventHandler.class))
-			Bukkit.getPluginManager().registerEvents(stat, plugin);
+	public void RegisterStatEvent(Stat stat, Plugin plugin)
+	{
+		m_keywords.put(stat.name, stat);
+		Bukkit.getPluginManager().registerEvents(stat, plugin);
 	}
 
 	public Stat GetStat(String name)

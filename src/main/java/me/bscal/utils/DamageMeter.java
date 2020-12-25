@@ -3,6 +3,7 @@ package me.bscal.utils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
@@ -14,7 +15,7 @@ public class DamageMeter implements Listener
 
 	private static final DecimalFormat NUM_FORMAT = new DecimalFormat("#.00");
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void OnPlayerDamage(EntityDamageByEntityEvent e)
 	{
 		if (e.getDamager() instanceof Player)
