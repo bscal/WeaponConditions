@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,30 +20,31 @@ import java.util.Map;
 public class LoreStats extends LoreManager<Stat>
 {
 
-	private final static int SPLIT_OFFSET = 1;
-
-	public void RegisterStat(Stat stat)
+	public void Register(Stat stat, Plugin plugin)
 	{
-		m_keywords.put(stat.name, stat);
-	}
+		AddKeyword(stat.name, stat);
 
-	public void RegisterStatEvent(Stat stat, Plugin plugin)
-	{
-		m_keywords.put(stat.name, stat);
-		Bukkit.getPluginManager().registerEvents(stat, plugin);
+		for (Method m : stat.getClass().getMethods())
+		{
+			if (m.isAnnotationPresent(EventHandler.class))
+			{
+				Bukkit.getPluginManager().registerEvents(stat, plugin);
+				break;
+			}
+		}
 	}
 
 	public Stat GetStat(String name)
 	{
-		return m_keywords.get(name);
+		return GetKeyword(name);
 	}
 
-	public StatContainer ContainerFromLore(LoreManager.LoreLookupStat line)
+	public StatContainer ContainerFromLore(LoreManager.LoreLookupContainer line)
 	{
 		if (!line.contains)
 			return null;
 
-		return new StatContainer(line.prefix, line.value, Operation.ADD, m_keywords.get(line.name));
+		return new StatContainer(line.prefix, line.value, Operation.ADD, m_keywords.get(line.keyword));
 	}
 
 	public Map<String, Float> GetAllStats(LivingEntity ent)
@@ -55,12 +57,12 @@ public class LoreStats extends LoreManager<Stat>
 			if (piece.getType().isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
 				continue;
 
-			List<StatContainer> stats = FindStats(piece.getItemMeta().getLore());
+			List<LoreLookupContainer> containers = FindContainers(piece.getItemMeta().getLore());
 
-			for (StatContainer s : stats)
+			for (LoreLookupContainer c : containers)
 			{
-				float f = map.getOrDefault(s.parent.name, 0f);
-				map.put(s.parent.name, f + s.value);
+				float f = map.getOrDefault(c.keyword, 0f);
+				map.put(c.keyword, f + c.value);
 				// TODO handle operations
 			}
 		}
@@ -77,14 +79,14 @@ public class LoreStats extends LoreManager<Stat>
 			if (piece.getType().isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
 				continue;
 
-			List<StatContainer> stats = FindStats(piece.getItemMeta().getLore());
+			List<LoreLookupContainer> containers = FindContainers(piece.getItemMeta().getLore());
 
-			for (StatContainer s : stats)
+			for (LoreLookupContainer c : containers)
 			{
-				if (!s.parent.name.equals(stat))
+				if (!c.keyword.equals(stat))
 					continue;
-				float f = map.getOrDefault(s.parent.name, 0f);
-				map.put(s.parent.name, f + s.value);
+				float f = map.getOrDefault(c.keyword, 0f);
+				map.put(c.keyword, f + c.value);
 				// TODO handle operations
 			}
 		}
@@ -98,12 +100,12 @@ public class LoreStats extends LoreManager<Stat>
 		if (item.getType().isEmpty() || !item.hasItemMeta() || !item.getItemMeta().hasLore())
 			return map;
 
-		List<StatContainer> stats = FindStats(item.getItemMeta().getLore());
+		List<LoreLookupContainer> containers = FindContainers(item.getItemMeta().getLore());
 
-		for (StatContainer s : stats)
+		for (LoreLookupContainer c : containers)
 		{
-			float f = map.getOrDefault(s.parent.name, 0f);
-			map.put(s.parent.name, f + s.value);
+			float f = map.getOrDefault(c.keyword, 0f);
+			map.put(c.keyword, f + c.value);
 			// TODO handle operations
 		}
 		return map;
@@ -116,7 +118,7 @@ public class LoreStats extends LoreManager<Stat>
 		if (im.hasLore())
 		{
 			lore = item.getLore();
-			LoreLookupStat line = FindStat(lore, container.parent.name);
+			LoreLookupContainer line = FindContainer(lore, container.parent.name);
 
 			StatContainer loreStat = ContainerFromLore(line);
 
@@ -128,7 +130,6 @@ public class LoreStats extends LoreManager<Stat>
 					newTotal = loreStat.value + container.value;
 				else if (loreStat.operation == Operation.MULTIPLY)
 					newTotal = loreStat.value * container.value;
-				WeaponConditions.Logger.Log(newTotal, loreStat.value, container.value);
 				if (newTotal == 0.0f)
 				{
 					lore.remove(line.index);
@@ -158,7 +159,7 @@ public class LoreStats extends LoreManager<Stat>
 			return;
 
 		List<String> lore = item.getLore();
-		LoreLookupStat line = FindStat(lore, container.parent.name);
+		LoreLookupContainer line = FindContainer(lore, container.parent.name);
 
 		if (!line.contains)
 			return;
@@ -170,80 +171,6 @@ public class LoreStats extends LoreManager<Stat>
 			lore.remove(line.index);
 			im.setLore(lore);
 			item.setItemMeta(im);
-		}
-	}
-
-	/**-
-	 * **************
-	 * * Lore Stats *
-	 * **************
-	 */
-
-	public LoreLookupStat FindStat(List<String> lore, String statName)
-	{
-		for (int i = 0; i < lore.size(); i++)
-		{
-			String line = ChatColor.stripColor(lore.get(i));
-			LoreLookupStat stat = ExtractStat(i, line);
-			if (stat != null)
-				return stat;
-		}
-		return new LoreLookupStat(-1, false, Character.MIN_VALUE, 0, statName);
-	}
-
-	public List<StatContainer> FindStats(List<String> lore)
-	{
-		List<StatContainer> list = new ArrayList<>();
-		for (int i = 0; i < lore.size(); i++)
-		{
-			String line = ChatColor.stripColor(lore.get(i));
-			LoreLookupStat stat = ExtractStat(i, line);
-			if (stat != null)
-				list.add(ContainerFromLore((stat)));
-		}
-		return list;
-	}
-
-	public List<String> SetStat(List<String> lore, LoreLookupStat loreStat, String statStr)
-	{
-		if (loreStat.value == 0)
-			lore.remove(loreStat.index);
-
-		lore.set(loreStat.index, statStr);
-		return lore;
-	}
-
-	public LoreLookupStat ExtractStat(int i, String line)
-	{
-		if (line.isBlank())
-			return null;
-
-		String[] split = line.split(" ");
-		if (split.length < 2)
-			return null;
-
-		String keyword = split[1];
-		if (m_keywords.containsKey(keyword))
-		{
-			char c = split[0].charAt(0);
-			char prefix = IsPrefix(c) ? c : ' ';
-			String valStr = (c == '-' || c == '+') ? split[0] : split[0].substring(1);
-
-			return new LoreLookupStat(i, true, prefix, ParseValue(valStr), keyword);
-		}
-		return null;
-	}
-
-	public static float ParseValue(String valueStr)
-	{
-		try
-		{
-			return Float.parseFloat(valueStr);
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-			return 0;
 		}
 	}
 }

@@ -2,6 +2,7 @@ package me.bscal.lore;
 
 import me.bscal.WeaponConditions;
 import me.bscal.logcraft.LogLevel;
+import me.bscal.lore.stats.StatContainer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
@@ -16,6 +17,9 @@ import java.util.Map;
 
 public class LoreManager<T>
 {
+
+	public static final LoreLookupContainer NULL_CONTAINER = new LoreLookupContainer(-1, false,
+			Character.MIN_VALUE, 0, "", "", false);
 
 	protected String m_header;
 	protected String m_footer;
@@ -58,7 +62,7 @@ public class LoreManager<T>
 		GetKeywords(item.getLore()).forEach((key) -> {
 			T obj = m_keywords.get(key);
 			if (obj instanceof LoreItem)
-				((LoreItem)obj).Update(item);
+				((LoreItem) obj).Update(item);
 		});
 	}
 
@@ -193,28 +197,6 @@ public class LoreManager<T>
 		return new LoreLookupData(-1, false);
 	}
 
-	public LoreLine FindLine(List<String> lore, String key, int offset)
-	{
-		for (int i = 0; i < lore.size(); i++)
-		{
-			String line = ChatColor.stripColor(lore.get(i));
-
-			if (line.isBlank())
-				continue;
-
-			String[] split = line.split(" ");
-			char c = split[0].charAt(0);
-			char prefix = IsPrefix(c) ? c : ' ';
-			String keyword = ExtractKeyword(line, offset);
-
-			if (m_keywords.containsKey(keyword))
-			{
-				return new LoreLine(prefix, keyword, i, true, GetLoreVariable(line));
-			}
-		}
-		return new LoreLine(Character.MIN_VALUE, key, -1, false, null);
-	}
-
 	protected List<String> GetKeywords(List<String> lore)
 	{
 		List<String> list = new ArrayList<>();
@@ -306,18 +288,93 @@ public class LoreManager<T>
 	public String ExtractKeyword(String line)
 	{
 		String[] split = line.split(m_splitStr);
-		return (split.length > m_splitOffset) ? split[m_splitOffset] : "";
-	}
 
-	public String ExtractKeyword(String line, int offset)
-	{
-		String[] split = line.split(m_splitStr);
-		return (split.length > offset) ? split[offset] : "";
+		return (split.length > 1 && IsPrefix(split[0].charAt(0))) ? split[1] : split[0];
 	}
 
 	public boolean IsPrefix(char prefix)
 	{
 		return prefix == m_prefix || prefix == '+' || prefix == '-';
+	}
+
+	/**-
+	 * **************
+	 * * Lore Stats *
+	 * **************
+	 */
+
+	public LoreLookupContainer FindContainer(List<String> lore, String statName)
+	{
+		for (int i = 0; i < lore.size(); i++)
+		{
+			String line = ChatColor.stripColor(lore.get(i));
+			LoreLookupContainer stat = LoreLineToContainer(i, line);
+			if (stat != null)
+				return stat;
+		}
+		return NULL_CONTAINER;
+	}
+
+	public List<LoreLookupContainer> FindContainers(List<String> lore)
+	{
+		List<LoreLookupContainer> list = new ArrayList<>();
+		for (int i = 0; i < lore.size(); i++)
+		{
+			String line = ChatColor.stripColor(lore.get(i));
+			LoreLookupContainer stat = LoreLineToContainer(i, line);
+			if (stat != null)
+				list.add(stat);
+		}
+		return list;
+	}
+
+	public List<String> SetStat(List<String> lore, LoreLookupContainer loreStat, String statStr)
+	{
+		if (loreStat.value == 0)
+			lore.remove(loreStat.index);
+
+		lore.set(loreStat.index, statStr);
+		return lore;
+	}
+
+	public LoreLookupContainer LoreLineToContainer(int i, String line)
+	{
+		if (line.isBlank())
+			return null;
+
+		String[] split = line.split(" ");
+		if (split.length < 2)
+			return null;
+
+		String keyword = ExtractKeyword(line);
+		if (m_keywords.containsKey(keyword))
+		{
+			char c = split[0].charAt(0);
+			char prefix = IsPrefix(c) ? c : ' ';
+			String valStr = (c == '-' || c == '+') ? split[0] : split[0].substring(1);
+
+			float val = ParseValue(valStr);
+			boolean isVal = val != 0;
+
+			// TODO maybe update to support multiple lore variables
+			String data = (split.length > 2) ? split[3] : "";
+
+			return new LoreLookupContainer(i, true, prefix, val, keyword, data, isVal);
+		}
+		return null;
+	}
+
+	public static float ParseValue(String valueStr)
+	{
+		try
+		{
+			return Float.parseFloat(valueStr);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return 0;
+		}
 	}
 
 	public boolean ContainsKey(String key)
@@ -408,20 +465,25 @@ public class LoreManager<T>
 		}
 	}
 
-	public static class LoreLookupStat extends LoreLookupData
+	public static class LoreLookupContainer extends LoreLookupData
 	{
 		public final char prefix;
 		public final float value;
-		public final String name;
+		public final String keyword;
+		public final String data;
 
+		public final boolean hasValue;
 
-		public LoreLookupStat(int i, boolean contains, char prefix, float value, String name)
+		public LoreLookupContainer(int i, boolean contains, char prefix, float value,
+				String keyword, String data, boolean hasValue)
 		{
 			super(i, contains);
 			this.prefix = prefix;
+			this.keyword = keyword;
 			this.value = value;
-			this.name = name;
-
+			this.data = data;
+			this.hasValue = hasValue;
 		}
 	}
+
 }
