@@ -45,15 +45,16 @@ public class WeaponConditions extends JavaPlugin
 		pm.registerEvents(m_itemManager, this);
 		pm.registerEvents(new DamageMeter(), this);
 
+		m_loreStats = new LoreStats();
+		m_loreStats.Register(new DamageStat(), this);
+
+		Logger.Log("Stats registered: ", m_loreStats.GetKeywords().size());
+
 		m_itemManager.RegisterCondition(new OiledCondition());
 		m_itemManager.RegisterCondition(new SharpenedCondition());
 
 		Logger.Log("Conditions registered: ", m_itemManager.GetKeywords().size());
 
-		m_loreStats = new LoreStats();
-		m_loreStats.Register(new DamageStat(), this);
-
-		Logger.Log("Stats registered: ", m_loreStats.GetKeywords().size());
 	}
 
 	public static WeaponConditions Get()

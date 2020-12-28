@@ -27,6 +27,11 @@ public abstract class Stat implements Listener
 		this.type = type;
 	}
 
+	public StatContainer CreateContainer(float value, Operation operation)
+	{
+		return new StatContainer(Character.MIN_VALUE, value, operation, this);
+	}
+
 	public StatContainer CreateContainer(char prefix, float value, Operation operation)
 	{
 		return new StatContainer(prefix, value, operation, this);

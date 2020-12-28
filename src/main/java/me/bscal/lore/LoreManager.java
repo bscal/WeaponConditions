@@ -48,9 +48,9 @@ public class LoreManager<T>
 		{
 			m_color = prefixColor;
 			m_prefix = prefix;
-			m_splitStr = " ";
-			m_splitOffset = 1;
 		}
+		m_splitStr = " ";
+		m_splitOffset = 1;
 		m_keywords = new HashMap<>();
 	}
 
@@ -252,7 +252,7 @@ public class LoreManager<T>
 	 */
 	protected void PushLineToLore(List<String> lore, String line, int index, boolean hasHeaders)
 	{
-		String formatted = MessageFormat.format("{0}{1}{2}{4}", m_color, m_prefix, m_splitStr,
+		String formatted = MessageFormat.format("{0}{1}{2}{3}", m_color, m_prefix, m_splitStr,
 				line);
 		if (!hasHeaders)
 		{
@@ -287,9 +287,8 @@ public class LoreManager<T>
 
 	public String ExtractKeyword(String line)
 	{
-		String[] split = line.split(m_splitStr);
-
-		return (split.length > 1 && IsPrefix(split[0].charAt(0))) ? split[1] : split[0];
+		String[] split = line.split(" ");
+		return (split.length == 0) ? "" : (split.length > 1 && IsPrefix(split[0].charAt(0))) ? split[1] : split[0];
 	}
 
 	public boolean IsPrefix(char prefix)

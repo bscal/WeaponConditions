@@ -1,12 +1,9 @@
 package me.bscal.lore.stats;
 
-import me.bscal.WeaponConditions;
 import me.bscal.lore.LoreManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
@@ -44,17 +41,18 @@ public class LoreStats extends LoreManager<Stat>
 		if (!line.contains)
 			return null;
 
-		return new StatContainer(line.prefix, line.value, Operation.ADD, m_keywords.get(line.keyword));
+		return new StatContainer(line.prefix, line.value, Operation.ADD,
+				m_keywords.get(line.keyword));
 	}
 
 	public Map<String, Float> GetAllStats(LivingEntity ent)
 	{
 		Map<String, Float> map = new HashMap<>();
-		EntityEquipment equip = ent.getEquipment();
 
-		for (ItemStack piece : equip.getArmorContents())
+		for (ItemStack piece : GetAllGear(ent))
 		{
-			if (piece.getType().isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
+			if (piece == null || piece.getType()
+					.isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
 				continue;
 
 			List<LoreLookupContainer> containers = FindContainers(piece.getItemMeta().getLore());
@@ -72,11 +70,10 @@ public class LoreStats extends LoreManager<Stat>
 	public Map<String, Float> GetAllOfStat(LivingEntity ent, String stat)
 	{
 		Map<String, Float> map = new HashMap<>();
-		EntityEquipment equip = ent.getEquipment();
-
-		for (ItemStack piece : equip.getArmorContents())
+		for (ItemStack piece : GetAllGear(ent))
 		{
-			if (piece.getType().isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
+			if (piece == null || piece.getType()
+					.isEmpty() || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
 				continue;
 
 			List<LoreLookupContainer> containers = FindContainers(piece.getItemMeta().getLore());
@@ -172,5 +169,16 @@ public class LoreStats extends LoreManager<Stat>
 			im.setLore(lore);
 			item.setItemMeta(im);
 		}
+	}
+
+	public ItemStack[] GetAllGear(LivingEntity ent)
+	{
+		return (ent.getEquipment() == null) ?
+				new ItemStack[0] :
+				new ItemStack[] { ent.getEquipment().getItemInMainHand(),
+						ent.getEquipment().getItemInOffHand(), ent.getEquipment().getHelmet(),
+						ent.getEquipment().getChestplate(), ent.getEquipment().getLeggings(),
+						ent.getEquipment().getBoots()
+				};
 	}
 }
