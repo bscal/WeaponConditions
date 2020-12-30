@@ -18,6 +18,8 @@ public class PArmorStat extends Stat
 
 	public static final String NAME = "Physical Armor";
 
+	private static final double VALUE_PER_ARMOR = .5;
+
 	public PArmorStat()
 	{
 		super(NAME, ColorConstants.GOOD, ChatColor.WHITE, ValueType.FLAT);
@@ -32,7 +34,18 @@ public class PArmorStat extends Stat
 
 			Map<String, Float> stats = WeaponConditions.Get().GetLoreStats().GetAllStats(damagee);
 
-			e.setDamage(e.getDamage() - stats.get(NAME));
+			double reduction = 1;
+			WeaponConditions.Logger.Log(stats.get(NAME), reduction);
+			e.setDamage(e.getDamage() - reduction);
 		}
+	}
+
+	private double DimishValue(double armor)
+	{
+		final double e = 3.0;
+		final double max = 100.0;
+		final double base = 1 /  max;
+
+		return armor - (Math.pow(armor, e) / max - base);
 	}
 }
